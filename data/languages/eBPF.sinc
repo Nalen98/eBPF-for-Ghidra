@@ -1,0 +1,485 @@
+###############################################################################
+# eBPF Processor Specification for Ghidra
+###############################################################################
+
+#eBPF is a RISC register machine with a total of 11 64-bit registers, a program counter and a 512 byte fixed-size stack. 
+#9 registers are general purpouse read-write, one is a read-only stack pointer and the program counter is implicit,
+#i.e. we can only jump to a certain offset from it. The eBPF registers are always 64-bit wide.
+
+define space ram type=ram_space size=8 default;
+define space register type=register_space size=4;
+
+define register offset=0 size=8 [ R0  R1  R2  R3  R4  R5  R6  R7  R8  R9  R10  PC ];
+ 
+# Instruction encoding: Insop:8, dst_reg:4, src_reg:4, off:16, imm:32 - from lsb to msb
+define token instr(64)
+	imm=(32, 63) signed
+	off=(16, 31) signed
+	src=(12, 15)
+	dst=(8, 11)
+	op_alu_jmp_opcode=(4, 7)
+	op_alu_jmp_source=(3, 3)
+	op_ld_st_mode=(5, 7)
+	op_ld_st_size=(3, 4)
+	op_insn_class=(0, 2)
+;
+
+#We'll need this token to operate with LDDW instruction, which has 64 bit imm value
+define token immtoken(64)
+	imm2=(32, 63)	
+;
+
+#To operate with registers
+attach variables [ src dst ] [  R0  R1  R2  R3  R4  R5  R6  R7  R8  R9  R10  _  _  _  _  _  ];
+
+#Definitions for blackbox in-kernel functions (eBPF helpers)
+define pcodeop bpf_unspec;
+define pcodeop bpf_map_lookup_elem;
+define pcodeop bpf_map_update_elem;
+define pcodeop bpf_map_delete_elem;
+define pcodeop bpf_probe_read;
+define pcodeop bpf_ktime_get_ns;
+define pcodeop bpf_trace_printk;
+define pcodeop bpf_get_prandom_u32;
+define pcodeop bpf_get_smp_processor_id;
+define pcodeop bpf_skb_store_bytes;
+define pcodeop bpf_l3_csum_replace;
+define pcodeop bpf_l4_csum_replace;
+define pcodeop bpf_tail_call;
+define pcodeop bpf_clone_redirect;
+define pcodeop bpf_get_current_pid_tgid;
+define pcodeop bpf_get_current_uid_gid;
+define pcodeop bpf_get_current_comm;
+define pcodeop bpf_get_cgroup_classid;
+define pcodeop bpf_skb_vlan_push;
+define pcodeop bpf_skb_vlan_pop;
+define pcodeop bpf_skb_get_tunnel_key;
+define pcodeop bpf_skb_set_tunnel_key;
+define pcodeop bpf_perf_event_read;
+define pcodeop bpf_redirect;
+define pcodeop bpf_get_route_realm;
+define pcodeop bpf_perf_event_output;
+define pcodeop bpf_skb_load_bytes;
+define pcodeop bpf_get_stackid;
+define pcodeop bpf_csum_diff;
+define pcodeop bpf_skb_get_tunnel_opt;
+define pcodeop bpf_skb_set_tunnel_opt;
+define pcodeop bpf_skb_change_proto;
+define pcodeop bpf_skb_change_type;
+define pcodeop bpf_skb_under_cgroup;
+define pcodeop bpf_get_hash_recalc;
+define pcodeop bpf_get_current_task;
+define pcodeop bpf_probe_write_user;
+define pcodeop bpf_undef;
+
+#Arithmetic instructions
+###############################################################################
+
+:MOV dst, src  is src & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=src; }
+:MOV dst, imm  is imm & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=imm; }
+
+:ADD dst, src  is src & dst & op_alu_jmp_opcode=0x0 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst + src; }
+:ADD dst, imm  is imm & dst & op_alu_jmp_opcode=0x0 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst + imm; }
+
+:SUB dst, src  is src & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst - src; }
+:SUB dst, imm  is imm & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst - imm; }
+
+:MUL dst, src  is src & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=1 & op_insn_class=0x7 {  dst=dst * src; }
+:MUL dst, imm  is imm & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=0 & op_insn_class=0x7 {  dst=dst * imm; }
+
+:DIV dst, src  is src & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst / src; }
+:DIV dst, imm  is imm & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst / imm; }
+
+:OR dst, src  is src & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst | src; }
+:OR dst, imm  is imm & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst | imm; }
+
+:AND dst, src  is src & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst & src; }
+:AND dst, imm  is imm & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst & imm; }
+
+:LSH dst, src  is src & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst << src; }
+:LSH dst, imm  is imm & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst << imm; }
+
+:RSH dst, src  is src & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst >> src; }
+:RSH dst, imm  is imm & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst >> imm; }
+
+:NEG dst  is dst & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=-dst; }
+
+:MOD dst, src  is src & dst & op_alu_jmp_opcode=0x9 & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst % src; }
+:MOD dst, imm  is imm & dst & op_alu_jmp_opcode=0x9 & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst % imm; }
+
+:XOR dst, src  is src & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst ^ src; }
+:XOR dst, imm  is imm & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst ^ imm; }
+
+:ARSH dst, src  is src & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=1 & op_insn_class=0x7 { dst=dst s>> src; }
+:ARSH dst, imm  is imm & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=0 & op_insn_class=0x7 { dst=dst s>> imm; }
+
+#Bytewasp instructions
+###############################################################################
+
+:LE16 dst  is imm=0x10 & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=0 & op_insn_class=0x4 { dst=((dst) >> 8) | ((dst) << 8); }
+:LE32 dst  is imm=0x20 & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=0 & op_insn_class=0x4 { dst=((dst) >> 24) | (((dst) & 0x00FF0000) >> 8)  | (((dst) & 0x0000FF00) << 8) | ((dst) << 24); }
+:LE64 dst  is imm=0x40 & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=0 & op_insn_class=0x4 {
+		dst=( (dst << 56) & 0xff00000000000000 ) |
+		( (dst << 40) & 0x00ff000000000000 ) |
+		( (dst << 24) & 0x0000ff0000000000 ) |
+		( (dst <<  8) & 0x000000ff00000000 ) |
+		( (dst >>  8) & 0x00000000ff000000 ) |
+		( (dst >> 24) & 0x0000000000ff0000 ) |
+		( (dst >> 40) & 0x000000000000ff00 ) |
+		( (dst >> 56) & 0x00000000000000ff );
+}
+
+:BE16 dst  is imm=0x10 & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=1 & op_insn_class=0x4 { dst=((dst) >> 8) | ((dst) << 8); }
+:BE32 dst  is imm=0x20 & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=1 & op_insn_class=0x4 { dst=((dst) >> 24) | (((dst) & 0x00FF0000) >> 8)  | (((dst) & 0x0000FF00) << 8) | ((dst) << 24); }
+:BE64 dst  is imm=0x40 & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=1 & op_insn_class=0x4 {
+		dst=( (dst << 56) & 0xff00000000000000 ) |
+		( (dst << 40) & 0x00ff000000000000 ) |
+		( (dst << 24) & 0x0000ff0000000000 ) |
+		( (dst <<  8) & 0x000000ff00000000 ) |
+		( (dst >>  8) & 0x00000000ff000000 ) |
+		( (dst >> 24) & 0x0000000000ff0000 ) |
+		( (dst >> 40) & 0x000000000000ff00 ) |
+		( (dst >> 56) & 0x00000000000000ff );
+}
+	 
+#Memory instructions- Load and Store
+###############################################################################
+
+#LDDW is the only 16-byte eBPF instruction which consists of two consecutive 8-byte blocks ('struct bpf_insn') 
+#and interpreted as single instruction which loads 64-bit imm value into dst. Encoding of LDDW:
+#LSR                                                                     				  			 MSR
+#			opcode		src		dst		offset		Low 8-byte imm	  zero-block	High 8-byte imm
+#bits	  	  8			 4     	 4        16              32               32               32
+# So, imm64 consists of concatination of high 8-byte imm and low 8-byte imm.
+
+:LDDW dst, concat  is  imm & dst & op_ld_st_mode=0x0 & op_ld_st_size=0x3 & op_insn_class=0x0; imm2 [ concat= (imm2 << 32) | imm; ]{	dst=concat; }
+
+:LDABSW dst, imm  is imm & dst & op_ld_st_mode=0x1 & op_ld_st_size=0x0 & op_insn_class=0x0 { dst=*:4 imm:8; }
+
+:LDABSH dst, imm  is imm & dst & op_ld_st_mode=0x1 & op_ld_st_size=0x1 & op_insn_class=0x0 { dst=*:2 imm:8; }
+
+:LDABSB dst, imm  is imm & dst &  op_ld_st_mode=0x1 & op_ld_st_size=0x2 & op_insn_class=0x0 { dst=*:1 imm:8; }
+
+:LDABSDW dst, imm  is imm & dst & op_ld_st_mode=0x1 & op_ld_st_size=0x3 & op_insn_class=0x0 { dst=*:8 imm:8; }
+
+:LDINDW src, dst, imm  is imm & src & dst & op_ld_st_mode=0x2 & op_ld_st_size=0x0 & op_insn_class=0x0  { dst=*:4 (src + imm); }
+
+:LDINDH src, dst, imm  is imm & src & dst & op_ld_st_mode=0x2 & op_ld_st_size=0x1 & op_insn_class=0x0 { dst=*:2 (src + imm); }
+
+:LDINDB src, dst, imm  is imm & src & dst & op_ld_st_mode=0x2 & op_ld_st_size=0x2 & op_insn_class=0x0 { dst=*:1 (src + imm); }
+
+:LDINDDW src, dst, imm  is imm & src & dst & op_ld_st_mode=0x2 & op_ld_st_size=0x3 & op_insn_class=0x0 { dst=*:8 (src + imm); }
+
+:LDXW dst, [src + off]  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x0 & op_insn_class=0x1 { dst=*:4 (src + off); }
+
+:LDXH dst, [src + off]  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x1 & op_insn_class=0x1 { dst=*:2 (src + off); }
+
+:LDXB dst, [src + off]  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x2 & op_insn_class=0x1 { dst=*:1 (src + off); }
+
+:LDXDW dst, [src + off]  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x3 & op_insn_class=0x1 { dst=*:8 (src + off); }
+
+:STW [dst + off], imm  is imm & off & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x0 & op_insn_class=0x2 { *:4 (dst + off)=imm:4; }
+
+:STH [dst + off], imm  is imm & off & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x1 & op_insn_class=0x2 { *:2 (dst + off)=imm:2; }
+
+:STB [dst + off], imm  is imm & off & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x2 & op_insn_class=0x2 { *:1 (dst + off)=imm:1; }
+
+:STDW [dst + off], imm  is imm & off & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x3 & op_insn_class=0x2 { *:8 (dst + off)=imm:8; }
+
+:STXW [dst + off], src  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x0 & op_insn_class=0x3 { *:4 (dst + off)=src:4; }
+
+:STXH [dst + off], src  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x1 & op_insn_class=0x3 { *:2 (dst + off)=src:2; }
+
+:STXB [dst + off], src  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x2 & op_insn_class=0x3 { *:1 (dst + off)=src:1; }
+
+:STXDW [dst + off], src  is off & src & dst & op_ld_st_mode=0x3 & op_ld_st_size=0x3 & op_insn_class=0x3 { *:8 (dst + off)=src:8; }
+
+:XADDStSrc dst, src  is src & dst & op_ld_st_mode=0x6 & op_ld_st_size=0x3 & op_insn_class=0x3 { *:8 dst=*:8 dst + src; }
+
+#Branch instructions
+###############################################################################
+
+:JA off is  off & op_alu_jmp_opcode=0x0 & op_alu_jmp_source=0 & op_insn_class=0x5 {	
+	local temp:8=inst_next + off * 8;  
+    goto [temp];
+}
+
+:JEQ dst, imm, off   is imm & off & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=0 & op_insn_class=0x5 {	
+	temp:8=inst_next + off * 8;  
+	if (dst!=imm) goto <label>;
+	goto [temp];	
+	<label>	   
+}
+
+:JEQ dst, src, off   is off & src & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst!=src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JGT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst<=imm) goto <label>;
+	goto [temp];	
+	<label>		
+}
+
+:JGT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst<=src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JGE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst<imm) goto <label>;
+	goto [temp];	
+	<label>		
+}
+
+:JGE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst<src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JLT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst>=imm) goto <label>;
+	goto [temp];	
+	<label>		
+}
+
+:JLT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst>=src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JLE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst>imm) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JLE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst>src) goto <label>;
+	goto [temp];	
+	<label>		
+}
+
+
+:JNE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst==imm) goto <label>;
+	goto [temp];	
+	<label>	
+
+}
+
+:JNE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst==src) goto <label>;
+	goto [temp];	
+	<label>		
+}
+
+
+:JSGT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst s<=imm) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSGT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst s<=src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSGE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst s<imm) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSGE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst s<src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSLT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8 =inst_next + off * 8;  
+	if (dst s>=imm) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSLT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst s>= src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSLE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst s> imm) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSLE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	temp:8=inst_next + off * 8;  
+	if (dst s> src) goto <label>;
+	goto [temp];	
+	<label>	
+}
+:JSET dst, imm, off   is imm & off & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	dst=dst & imm;
+	temp:8=inst_next + off * 8;  
+	if (!dst:1) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+:JSET dst, src, off   is off & src & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	dst=dst & src;
+	temp:8=inst_next + off * 8;  
+	if (!dst:1) goto <label>;
+	goto [temp];	
+	<label>	
+}
+
+# Definitions for first 40 eBPF-helpers 
+###############################################################################
+
+:CALL id  is imm=0x0 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x0; ] {	
+	R0=bpf_unspec(); 	
+}
+:CALL id  is imm=0x1 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1; ] {
+	R0=bpf_map_lookup_elem(R1, R2);	
+}
+:CALL id  is imm=0x2 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x2; ] { 	
+	R0=bpf_map_update_elem(R1, R2, R3, R4); 	
+}
+:CALL id  is imm=0x3 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x3; ] { 	
+	R0=bpf_map_delete_elem(R1, R2); 	
+}
+:CALL id  is imm=0x4 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x4; ] {	
+	R0=bpf_probe_read(R1, R2, R3); 	
+}
+:CALL id  is imm=0x5 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x5; ] { 	
+	R0=bpf_ktime_get_ns(); 	
+}
+:CALL id  is imm=0x6 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x6; ] { 
+	R0=bpf_trace_printk(R1, R2, R3, R4, R5); 	
+}
+:CALL id  is imm=0x7 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x7; ] {	
+	R0=bpf_get_prandom_u32();	
+}
+:CALL id  is imm=0x8 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x8; ] { 	
+	R0=bpf_get_smp_processor_id();	
+}
+:CALL id  is imm=0x9 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x9; ] { 	
+	R0=bpf_skb_store_bytes(R1, R2, R3, R4, R5); 	
+}
+:CALL id  is imm=0xa & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xa; ] {	
+	R0=bpf_l3_csum_replace(R1, R2, R3, R4, R5); 	
+}
+:CALL id  is imm=0xb & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xb; ] {	
+	R0=bpf_l4_csum_replace(R1, R2, R3, R4, R5); 	
+}
+:CALL id  is imm=0xc & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xc; ] {	
+	R0=bpf_tail_call(R1, R2, R3); 	
+}
+:CALL id  is imm=0xd & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xd; ] {	
+	R0=bpf_clone_redirect(R1, R2, R3);		
+}
+:CALL id  is imm=0xe & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xe; ] { 	
+	R0=bpf_get_current_pid_tgid(); 	
+}
+:CALL id  is imm=0xf & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xf; ] { 	
+	R0=bpf_get_current_uid_gid(); 	
+}
+:CALL id  is imm=0x10 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x10; ] {	
+	R0=bpf_get_current_comm(R1, R2); 	
+}
+:CALL id  is imm=0x11 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x11; ] { 	
+	R0=bpf_get_cgroup_classid(R1); 	
+}
+:CALL id  is imm=0x12 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x12; ] {	
+	R0=bpf_skb_vlan_push(R1, R2, R3); 	
+}
+:CALL id  is imm=0x13 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x13; ] {	
+	R0=bpf_skb_vlan_pop(R1); 	
+}
+:CALL id  is imm=0x14 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x14; ] { 	
+	R0=bpf_skb_get_tunnel_key(R1, R2, R3, R4); 	
+}
+:CALL id  is imm=0x15 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x15; ] {	
+	R0=bpf_skb_set_tunnel_key(R1, R2, R3, R4); 	
+}
+:CALL id  is imm=0x16 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x16; ] { 	
+	R0=bpf_perf_event_read(R1 ,R2); 	
+}
+:CALL id  is imm=0x17 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x17; ] { 	
+	R0=bpf_redirect(R1, R2); 	
+}
+:CALL id  is imm=0x18 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x18; ] { 	
+	R0=bpf_get_route_realm(R1); 	
+}
+:CALL id  is imm=0x19 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x19; ] { 	
+	R0=bpf_perf_event_output(R1, R2, R3, R4, R5);		
+}
+:CALL id  is imm=0x1a & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1a; ] {	
+	R0=bpf_skb_load_bytes(R1 ,R2, R3, R4); 	
+}
+:CALL id  is imm=0x1b & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1b; ] {	
+	R0=bpf_get_stackid(R1, R2, R3); 	
+}	
+:CALL id  is imm=0x1c & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1c; ] { 	
+	R0=bpf_csum_diff(R1, R2, R3, R4, R5); 	
+}
+:CALL id  is imm=0x1d & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1d; ] { 	
+	R0=bpf_skb_get_tunnel_opt(R1, R2, R3); 	
+}
+:CALL id  is imm=0x1e & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1e; ] { 	
+	R0=bpf_skb_set_tunnel_opt(R1, R2, R3); 	
+}
+:CALL id  is imm=0x1f & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1f; ] { 	
+	R0=bpf_skb_change_proto(R1, R2, R3); 	
+}
+:CALL id  is imm=0x20 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x20; ] { 	
+	R0=bpf_skb_change_type(R1 ,R2); 	
+}
+:CALL id  is imm=0x21 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x21; ] {	
+	R0=bpf_skb_under_cgroup(R1, R2, R3); 	
+}
+:CALL id  is imm=0x22 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x22; ] { 	
+	R0=bpf_get_hash_recalc(R1); 	
+}
+:CALL id  is imm=0x23 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x23; ] {	
+	R0=bpf_get_current_task(); 	
+}
+:CALL id  is imm=0x24 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x24; ] { 
+	R0=bpf_probe_write_user(R1 ,R2, R3); 	
+}
+
+#...And much more funcs (about +70)
+:CALL imm  is imm & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	R0=bpf_undef();
+}
+
+:EXIT is op_alu_jmp_opcode=0x9 & op_alu_jmp_source=0 & op_insn_class=0x5 { return [*:8 R10]; }
