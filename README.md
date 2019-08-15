@@ -4,8 +4,8 @@ This project was initially started as a part of [Digital Security](https://githu
 
 The extension implements eBPF architecture support for Ghidra and allows for disassembly and decompilation of ELF files containing eBPF programs.
 
-Example of eBPF program (`bpf_xdp.o`) you can get 
-[here](https://github.com/vbpf/ebpf-samples/blob/9f158353ae4c59360c6bd6760eb50cb20573a544/cilium/bpf_xdp.o).
+Example of eBPF program you can get 
+[here](https://github.com/vbpf/ebpf-samples).
 
 ![eBPF Extension](./images/eBPF.gif)
 
