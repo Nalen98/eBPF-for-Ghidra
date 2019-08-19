@@ -199,167 +199,100 @@ define pcodeop bpf_undef;
 #Branch instructions
 ###############################################################################
 
-:JA off is  off & op_alu_jmp_opcode=0x0 & op_alu_jmp_source=0 & op_insn_class=0x5 {	
-	local temp:8=inst_next + off * 8;  
-    goto [temp];
+joff: reloc  is off [ reloc = inst_next + off * 8; ] { export *:8 reloc; }
+
+:JA joff  is joff & op_alu_jmp_opcode=0x0 & op_alu_jmp_source=0 & op_insn_class=0x5 {	
+	goto joff;
 }
 
-:JEQ dst, imm, off   is imm & off & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=0 & op_insn_class=0x5 {	
-	temp:8=inst_next + off * 8;  
-	if (dst!=imm) goto <label>;
-	goto [temp];	
-	<label>	   
+:JEQ dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=0 & op_insn_class=0x5 {	
+	if (dst==imm) goto joff;
 }
 
-:JEQ dst, src, off   is off & src & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst!=src) goto <label>;
-	goto [temp];	
-	<label>	
+:JEQ dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0x1 & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst==src) goto joff;
 }
 
-:JGT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst<=imm) goto <label>;
-	goto [temp];	
-	<label>		
+:JGT dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst>imm) goto joff;	
 }
 
-:JGT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst<=src) goto <label>;
-	goto [temp];	
-	<label>	
+:JGT dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0x2 & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst>src) goto joff;
 }
 
-:JGE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst<imm) goto <label>;
-	goto [temp];	
-	<label>		
+:JGE dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst>=imm) goto joff;
 }
 
-:JGE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst<src) goto <label>;
-	goto [temp];	
-	<label>	
+:JGE dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0x3 & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst>=src) goto joff;
 }
 
-:JLT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst>=imm) goto <label>;
-	goto [temp];	
-	<label>		
+:JLT dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst<imm) goto joff;
 }
 
-:JLT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst>=src) goto <label>;
-	goto [temp];	
-	<label>	
+:JLT dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0xa & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst<src) goto joff;
 }
 
-:JLE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst>imm) goto <label>;
-	goto [temp];	
-	<label>	
+:JLE dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst<=imm) goto joff;
 }
 
-:JLE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst>src) goto <label>;
-	goto [temp];	
-	<label>		
+:JLE dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0xb & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst<=src) goto joff;
 }
 
-
-:JNE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst==imm) goto <label>;
-	goto [temp];	
-	<label>	
-
+:JNE dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst!=imm) goto joff;
 }
 
-:JNE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst==src) goto <label>;
-	goto [temp];	
-	<label>		
+:JNE dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0x5 & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst!=src) goto joff;	
 }
 
-
-:JSGT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst s<=imm) goto <label>;
-	goto [temp];	
-	<label>	
+:JSGT dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst s>imm) goto joff;
 }
 
-:JSGT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst s<=src) goto <label>;
-	goto [temp];	
-	<label>	
+:JSGT dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0x6 & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst s>src) goto joff;
 }
 
-:JSGE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst s<imm) goto <label>;
-	goto [temp];	
-	<label>	
+:JSGE dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst s>=imm) goto joff;
 }
 
-:JSGE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst s<src) goto <label>;
-	goto [temp];	
-	<label>	
+:JSGE dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0x7 & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst s>=src) goto joff;
 }
 
-:JSLT dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8 =inst_next + off * 8;  
-	if (dst s>=imm) goto <label>;
-	goto [temp];	
-	<label>	
+:JSLT dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst s<imm) goto joff;
 }
 
-:JSLT dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst s>= src) goto <label>;
-	goto [temp];	
-	<label>	
+:JSLT dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0xc & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst s<src) goto joff;
 }
 
-:JSLE dst, imm, off  is imm & off & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst s> imm) goto <label>;
-	goto [temp];	
-	<label>	
+:JSLE dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=0 & op_insn_class=0x5 {	  
+	if (dst s<=imm) goto joff;
 }
 
-:JSLE dst, src, off  is off & src & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	temp:8=inst_next + off * 8;  
-	if (dst s> src) goto <label>;
-	goto [temp];	
-	<label>	
-}
-:JSET dst, imm, off   is imm & off & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	dst=dst & imm;
-	temp:8=inst_next + off * 8;  
-	if (!dst:1) goto <label>;
-	goto [temp];	
-	<label>	
+:JSLE dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0xd & op_alu_jmp_source=1 & op_insn_class=0x5 {	  
+	if (dst s<=src) goto joff;
 }
 
-:JSET dst, src, off   is off & src & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=1 & op_insn_class=0x5 {
-	dst=dst & src;
-	temp:8=inst_next + off * 8;  
-	if (!dst:1) goto <label>;
-	goto [temp];	
-	<label>	
+:JSET dst, imm, joff  is imm & joff & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=0 & op_insn_class=0x5 {
+	dst=dst & imm;	  
+	if (dst:1) goto joff;
+}
+
+:JSET dst, src, joff  is joff & src & dst & op_alu_jmp_opcode=0x4 & op_alu_jmp_source=1 & op_insn_class=0x5 {
+	dst=dst & src;	  
+	if (dst:1) goto joff;
 }
 
 # Definitions for first 40 eBPF-helpers 
