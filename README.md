@@ -1,6 +1,6 @@
 # eBPF-for-Ghidra
 
-This project was initially started as a part of [Digital Security](https://github.com/DSecurity)'s Research Centre internship ["Summer of Hack 2019"](https://habr.com/ru/company/dsec/blog/450036/).
+This project was initially started as a part of [Digital Security](https://github.com/DSecurity)'s Research Centre internship ["Summer of Hack 2019"](https://dsec.ru/about/traineeship/).
 
 The extension implements eBPF architecture support for Ghidra and allows for disassembly and decompilation of ELF files containing eBPF programs.
 
