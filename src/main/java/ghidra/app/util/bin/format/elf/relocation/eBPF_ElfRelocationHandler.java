@@ -49,21 +49,21 @@ public class eBPF_ElfRelocationHandler extends ElfRelocationHandler {
 
 		if (type == 1) {			
 			try {					
-					int SymbolIndex= relocation.getSymbolIndex();
-					ElfSymbol Symbol = elfRelocationContext.getSymbol(SymbolIndex);
-					String map = Symbol.getNameAsString();				
+				int SymbolIndex= relocation.getSymbolIndex();
+				ElfSymbol Symbol = elfRelocationContext.getSymbol(SymbolIndex);
+				String map = Symbol.getNameAsString();				
 					
-					SymbolTable table = program.getSymbolTable();
-					Address mapAddr = table.getSymbol(map).getAddress();
-					String sec_name = elfRelocationContext.relocationTable.getSectionToBeRelocated().getNameAsString();
-					if (sec_name.toString().contains("debug")) {
-						return;
-					}
+				SymbolTable table = program.getSymbolTable();
+				Address mapAddr = table.getSymbol(map).getAddress();
+				String sec_name = elfRelocationContext.relocationTable.getSectionToBeRelocated().getNameAsString();
+				if (sec_name.toString().contains("debug")) {
+					return;
+				}
 					
-					value = mapAddr.getAddressableWordOffset();		
-					Byte dst = memory.getByte(relocationAddress.add(0x1));
-					memory.setLong(relocationAddress.add(0x4), value);			
-					memory.setByte(relocationAddress.add(0x1), (byte) (dst + 0x10));				
+				value = mapAddr.getAddressableWordOffset();		
+				Byte dst = memory.getByte(relocationAddress.add(0x1));
+				memory.setLong(relocationAddress.add(0x4), value);			
+				memory.setByte(relocationAddress.add(0x1), (byte) (dst + 0x10));				
 				}
 				catch(NullPointerException e) {}
 		}		
