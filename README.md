@@ -25,6 +25,10 @@ Function Graph for eBPF
 
 ![Function Graph](./images/Func.png)
 
+# Updates
+
+03.09 - eBPF maps implementation (added string info of map in decompiler and disassembler by using custom relocation handler)
+
 # Useful links
 
 * [Official kernel documentation](https://www.kernel.org/doc/Documentation/networking/filter.txt)
