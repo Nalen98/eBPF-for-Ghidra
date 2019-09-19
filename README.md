@@ -29,6 +29,8 @@ Function Graph for eBPF
 
 03.09 - eBPF maps implementation (added string info of map in decompiler and disassembler by using custom relocation handler)
 
+19.09 - stack problem [is resolved](https://github.com/Nalen98/eBPF-for-Ghidra/issues/2#issuecomment-533263382). eBPF call-helpers are implemented as syscalls (added hepler's signatures through custom eBPFAnalyzer)
+
 # Useful links
 
 * [Official kernel documentation](https://www.kernel.org/doc/Documentation/networking/filter.txt)
