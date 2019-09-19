@@ -8,6 +8,7 @@
 
 define space ram type=ram_space size=8 default;
 define space register type=register_space size=4;
+define space syscall type=ram_space size=2;
 
 define register offset=0 size=8 [ R0  R1  R2  R3  R4  R5  R6  R7  R8  R9  R10  PC ];
  
@@ -31,46 +32,6 @@ define token immtoken(64)
 
 #To operate with registers
 attach variables [ src dst ] [  R0  R1  R2  R3  R4  R5  R6  R7  R8  R9  R10  _  _  _  _  _  ];
-
-#Definitions for blackbox in-kernel functions (eBPF helpers)
-define pcodeop bpf_unspec;
-define pcodeop bpf_map_lookup_elem;
-define pcodeop bpf_map_update_elem;
-define pcodeop bpf_map_delete_elem;
-define pcodeop bpf_probe_read;
-define pcodeop bpf_ktime_get_ns;
-define pcodeop bpf_trace_printk;
-define pcodeop bpf_get_prandom_u32;
-define pcodeop bpf_get_smp_processor_id;
-define pcodeop bpf_skb_store_bytes;
-define pcodeop bpf_l3_csum_replace;
-define pcodeop bpf_l4_csum_replace;
-define pcodeop bpf_tail_call;
-define pcodeop bpf_clone_redirect;
-define pcodeop bpf_get_current_pid_tgid;
-define pcodeop bpf_get_current_uid_gid;
-define pcodeop bpf_get_current_comm;
-define pcodeop bpf_get_cgroup_classid;
-define pcodeop bpf_skb_vlan_push;
-define pcodeop bpf_skb_vlan_pop;
-define pcodeop bpf_skb_get_tunnel_key;
-define pcodeop bpf_skb_set_tunnel_key;
-define pcodeop bpf_perf_event_read;
-define pcodeop bpf_redirect;
-define pcodeop bpf_get_route_realm;
-define pcodeop bpf_perf_event_output;
-define pcodeop bpf_skb_load_bytes;
-define pcodeop bpf_get_stackid;
-define pcodeop bpf_csum_diff;
-define pcodeop bpf_skb_get_tunnel_opt;
-define pcodeop bpf_skb_set_tunnel_opt;
-define pcodeop bpf_skb_change_proto;
-define pcodeop bpf_skb_change_type;
-define pcodeop bpf_skb_under_cgroup;
-define pcodeop bpf_get_hash_recalc;
-define pcodeop bpf_get_current_task;
-define pcodeop bpf_probe_write_user;
-define pcodeop bpf_undef;
 
 #Arithmetic instructions
 ###############################################################################
@@ -301,124 +262,10 @@ joff: reloc  is off [ reloc = inst_next + off * 8; ] { export *:8 reloc; }
 	if (dst:1) goto joff;
 }
 
-# Definitions for first 40 eBPF-helpers 
-###############################################################################
+SysCall:  imm is imm { export *[syscall]:1 imm; }
 
-:CALL id  is imm=0x0 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x0; ] {	
-	R0=bpf_unspec(); 	
-}
-:CALL id  is imm=0x1 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1; ] {
-	R0=bpf_map_lookup_elem(R1, R2);	
-}
-:CALL id  is imm=0x2 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x2; ] { 	
-	R0=bpf_map_update_elem(R1, R2, R3, R4); 	
-}
-:CALL id  is imm=0x3 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x3; ] { 	
-	R0=bpf_map_delete_elem(R1, R2); 	
-}
-:CALL id  is imm=0x4 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x4; ] {	
-	R0=bpf_probe_read(R1, R2, R3); 	
-}
-:CALL id  is imm=0x5 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x5; ] { 	
-	R0=bpf_ktime_get_ns(); 	
-}
-:CALL id  is imm=0x6 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x6; ] { 
-	R0=bpf_trace_printk(R1, R2, R3, R4, R5); 	
-}
-:CALL id  is imm=0x7 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x7; ] {	
-	R0=bpf_get_prandom_u32();	
-}
-:CALL id  is imm=0x8 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x8; ] { 	
-	R0=bpf_get_smp_processor_id();	
-}
-:CALL id  is imm=0x9 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x9; ] { 	
-	R0=bpf_skb_store_bytes(R1, R2, R3, R4, R5); 	
-}
-:CALL id  is imm=0xa & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xa; ] {	
-	R0=bpf_l3_csum_replace(R1, R2, R3, R4, R5); 	
-}
-:CALL id  is imm=0xb & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xb; ] {	
-	R0=bpf_l4_csum_replace(R1, R2, R3, R4, R5); 	
-}
-:CALL id  is imm=0xc & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xc; ] {	
-	R0=bpf_tail_call(R1, R2, R3); 	
-}
-:CALL id  is imm=0xd & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xd; ] {	
-	R0=bpf_clone_redirect(R1, R2, R3);		
-}
-:CALL id  is imm=0xe & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xe; ] { 	
-	R0=bpf_get_current_pid_tgid(); 	
-}
-:CALL id  is imm=0xf & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0xf; ] { 	
-	R0=bpf_get_current_uid_gid(); 	
-}
-:CALL id  is imm=0x10 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x10; ] {	
-	R0=bpf_get_current_comm(R1, R2); 	
-}
-:CALL id  is imm=0x11 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x11; ] { 	
-	R0=bpf_get_cgroup_classid(R1); 	
-}
-:CALL id  is imm=0x12 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x12; ] {	
-	R0=bpf_skb_vlan_push(R1, R2, R3); 	
-}
-:CALL id  is imm=0x13 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x13; ] {	
-	R0=bpf_skb_vlan_pop(R1); 	
-}
-:CALL id  is imm=0x14 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x14; ] { 	
-	R0=bpf_skb_get_tunnel_key(R1, R2, R3, R4); 	
-}
-:CALL id  is imm=0x15 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x15; ] {	
-	R0=bpf_skb_set_tunnel_key(R1, R2, R3, R4); 	
-}
-:CALL id  is imm=0x16 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x16; ] { 	
-	R0=bpf_perf_event_read(R1 ,R2); 	
-}
-:CALL id  is imm=0x17 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x17; ] { 	
-	R0=bpf_redirect(R1, R2); 	
-}
-:CALL id  is imm=0x18 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x18; ] { 	
-	R0=bpf_get_route_realm(R1); 	
-}
-:CALL id  is imm=0x19 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x19; ] { 	
-	R0=bpf_perf_event_output(R1, R2, R3, R4, R5);		
-}
-:CALL id  is imm=0x1a & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1a; ] {	
-	R0=bpf_skb_load_bytes(R1 ,R2, R3, R4); 	
-}
-:CALL id  is imm=0x1b & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1b; ] {	
-	R0=bpf_get_stackid(R1, R2, R3); 	
-}	
-:CALL id  is imm=0x1c & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1c; ] { 	
-	R0=bpf_csum_diff(R1, R2, R3, R4, R5); 	
-}
-:CALL id  is imm=0x1d & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1d; ] { 	
-	R0=bpf_skb_get_tunnel_opt(R1, R2, R3); 	
-}
-:CALL id  is imm=0x1e & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1e; ] { 	
-	R0=bpf_skb_set_tunnel_opt(R1, R2, R3); 	
-}
-:CALL id  is imm=0x1f & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x1f; ] { 	
-	R0=bpf_skb_change_proto(R1, R2, R3); 	
-}
-:CALL id  is imm=0x20 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x20; ] { 	
-	R0=bpf_skb_change_type(R1 ,R2); 	
-}
-:CALL id  is imm=0x21 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x21; ] {	
-	R0=bpf_skb_under_cgroup(R1, R2, R3); 	
-}
-:CALL id  is imm=0x22 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x22; ] { 	
-	R0=bpf_get_hash_recalc(R1); 	
-}
-:CALL id  is imm=0x23 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x23; ] {	
-	R0=bpf_get_current_task(); 	
-}
-:CALL id  is imm=0x24 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 [ id=0x24; ] { 
-	R0=bpf_probe_write_user(R1 ,R2, R3); 	
-}
-
-#...And much more funcs (about +70)
-:CALL imm  is imm & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 {
-	R0=bpf_undef();
+:CALL SysCall  is imm & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 & SysCall {
+	call SysCall;
 }
 
 :EXIT is op_alu_jmp_opcode=0x9 & op_alu_jmp_source=0 & op_insn_class=0x5 { return [*:8 R10]; }
