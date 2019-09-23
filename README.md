@@ -31,6 +31,8 @@ Function Graph for eBPF
 
 19.09 - stack problem [is resolved](https://github.com/Nalen98/eBPF-for-Ghidra/issues/2#issuecomment-533263382). eBPF call-helpers are implemented as syscalls (added helper's signature through custom eBPFAnalyzer)
 
+23.09 - bad bookmarks fixed
+
 # Useful links
 
 * [Official kernel documentation](https://www.kernel.org/doc/Documentation/networking/filter.txt)
