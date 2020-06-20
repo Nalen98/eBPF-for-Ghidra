@@ -231,7 +231,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
 						cmdRet.applyTo(program);
 						cmdVar.applyTo(program);
 						//If we'll set all arguments for this func (as always), it will give rise nasty errors such "Removing unreachable block at (address)"
-						ghidra.app.cmd.comments.SetCommentsCmd.createComment(program, s.getAddress(), "int bpf_skb_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len, u64 flags)", CodeUnit.PRE_COMMENT);						
+						//int bpf_skb_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len, u64 flags)						
 						program.flushEvents();						
 						break;
 					case(0xa):
