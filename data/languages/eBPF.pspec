@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <processor_spec>
-	 <programcounter register="PC"/>
-	 
+	 <programcounter register="PC"/>	 
 	   <default_symbols>
 			<symbol name="bpf_unspec" address="syscall:0x0"/>
 			<symbol name="bpf_map_lookup_elem" address="syscall:0x1"/>
@@ -40,8 +39,35 @@
 			<symbol name="bpf_get_hash_recalc" address="syscall:0x22"/>
 			<symbol name="bpf_get_current_task" address="syscall:0x23"/>
 			<symbol name="bpf_probe_write_user" address="syscall:0x24"/>
+		   	<symbol name="bpf_current_task_under_cgroup" address="syscall:0x25"/>
+			<symbol name="bpf_skb_change_tail" address="syscall:0x26"/>
+			<symbol name="bpf_skb_pull_data" address="syscall:0x27"/>
+			<symbol name="bpf_csum_update" address="syscall:0x28"/>
+			<symbol name="bpf_set_hash_invalid" address="syscall:0x29"/>
+			<symbol name="bpf_get_numa_node_id" address="syscall:0x2a"/>
+			<symbol name="bpf_skb_change_head" address="syscall:0x2b"/>
+			<symbol name="bpf_xdp_adjust_head" address="syscall:0x2c"/>
+			<symbol name="bpf_probe_read_str" address="syscall:0x2d"/>
+			<symbol name="bpf_get_socket_cookie" address="syscall:0x2e"/>
+			<symbol name="bpf_get_socket_cookie" address="syscall:0x2f"/>
+			<symbol name="bpf_get_socket_cookie" address="syscall:0x30"/>
+			<symbol name="bpf_get_socket_uid" address="syscall:0x31"/>
+			<symbol name="bpf_set_hash" address="syscall:0x32"/>
+			<symbol name="bpf_setsockopt" address="syscall:0x33"/>
+			<symbol name="bpf_skb_adjust_room" address="syscall:0x34"/>
+			<symbol name="bpf_redirect_map" address="syscall:0x35"/>
+			<symbol name="bpf_sk_redirect_map" address="syscall:0x36"/>
+			<symbol name="bpf_sock_map_update" address="syscall:0x37"/>
+			<symbol name="bpf_xdp_adjust_meta" address="syscall:0x38"/>
+			<symbol name="bpf_perf_event_read_value" address="syscall:0x39"/>
+			<symbol name="bpf_perf_prog_read_value" address="syscall:0x3a"/>
+			<symbol name="bpf_getsockopt" address="syscall:0x3b"/>
+			<symbol name="bpf_override_return" address="syscall:0x3c"/>
+			<symbol name="bpf_sock_ops_cb_flags_set" address="syscall:0x3d"/>
+			<symbol name="bpf_msg_redirect_map" address="syscall:0x3e"/>
+			<symbol name="bpf_msg_apply_bytes" address="syscall:0x3f"/>	
        </default_symbols>
 	   <default_memory_blocks>
-          <memory_block name="eBPFHelper_functions" start_address="syscall:0" length="0x200" initialized="true"/>    
+          <memory_block name="eBPFHelper_functions" start_address="syscall:0" length="0x400" initialized="true"/>    
        </default_memory_blocks>
 </processor_spec>
