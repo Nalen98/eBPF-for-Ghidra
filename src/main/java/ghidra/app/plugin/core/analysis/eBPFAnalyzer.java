@@ -100,6 +100,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
 				AddMemoryParameterCommand cmdArg3;
 				AddMemoryParameterCommand cmdArg4;
 				AddMemoryParameterCommand cmdArg5;
+				SetFunctionVarArgsCommand cmdVar = new SetFunctionVarArgsCommand(func,true);
 				
 				String location = s.getName().substring(14); //Getting address of helper
 				int helper_id = Integer.parseInt(location,16);
@@ -225,8 +226,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
 					case(0x9):						
 						//int bpf_skb_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len, u64 flags)
 						cmdName = new SetFunctionNameCmd(s.getAddress(), "bpf_skb_store_bytes", SourceType.ANALYSIS);							
-						cmdRet = new SetReturnDataTypeCmd(s.getAddress(), dint , SourceType.ANALYSIS);		
-						SetFunctionVarArgsCommand cmdVar = new SetFunctionVarArgsCommand(func,true);									
+						cmdRet = new SetReturnDataTypeCmd(s.getAddress(), dint , SourceType.ANALYSIS);																	
 						cmdName.applyTo(program);
 						cmdRet.applyTo(program);
 						cmdVar.applyTo(program);
@@ -935,8 +935,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
 					case(0x33):
 						//int bpf_setsockopt(void *bpf_socket, int level, int optname, void *optval, int optlen)
 						cmdName = new SetFunctionNameCmd(s.getAddress(), "bpf_setsockopt", SourceType.ANALYSIS);							
-						cmdRet = new SetReturnDataTypeCmd(s.getAddress(), dint , SourceType.ANALYSIS);		
-						SetFunctionVarArgsCommand cmdVar = new SetFunctionVarArgsCommand(func,true);									
+						cmdRet = new SetReturnDataTypeCmd(s.getAddress(), dint , SourceType.ANALYSIS);													
 						cmdName.applyTo(program);
 						cmdRet.applyTo(program);
 						cmdVar.applyTo(program);												
@@ -1082,8 +1081,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
 					case(0x3b):
 						//int bpf_getsockopt(void *bpf_socket, int level, int optname, void *optval, int optlen)
 						cmdName = new SetFunctionNameCmd(s.getAddress(), "bpf_getsockopt", SourceType.ANALYSIS);							
-						cmdRet = new SetReturnDataTypeCmd(s.getAddress(), dint , SourceType.ANALYSIS);		
-						SetFunctionVarArgsCommand cmdVar = new SetFunctionVarArgsCommand(func,true);									
+						cmdRet = new SetReturnDataTypeCmd(s.getAddress(), dint , SourceType.ANALYSIS);	
 						cmdName.applyTo(program);
 						cmdRet.applyTo(program);
 						cmdVar.applyTo(program);												
