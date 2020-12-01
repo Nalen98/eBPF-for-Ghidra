@@ -4,9 +4,9 @@
      <absolute_max_alignment value="0" />
      <machine_alignment value="2" />
      <default_alignment value="1" />
-     <default_pointer_alignment value="4" />
-     <pointer_size value="4" />
-     <wchar_size value="4" />
+     <default_pointer_alignment value="8" />
+     <pointer_size value="8" />
+     <wchar_size value="2" />
      <short_size value="2" />
      <integer_size value="4" />
      <long_size value="4" />
