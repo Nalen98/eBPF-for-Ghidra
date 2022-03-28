@@ -54,7 +54,7 @@ public class eBPF_ElfRelocationHandler extends ElfRelocationHandler {
 				String map = Symbol.getNameAsString();				
 					
 				SymbolTable table = program.getSymbolTable();
-				Address mapAddr = table.getSymbol(map).getAddress();
+				Address mapAddr = table.getSymbols(map).next().getAddress();
 				String sec_name = elfRelocationContext.relocationTable.getSectionToBeRelocated().getNameAsString();
 				if (sec_name.toString().contains("debug")) {
 					return;
