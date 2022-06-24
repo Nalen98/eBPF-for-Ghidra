@@ -15,7 +15,7 @@
  */
 package ghidra.app.util.bin.format.elf.relocation;
 
-import ghidra.app.util.bin.format.elf. * ;
+import ghidra.app.util.bin.format.elf.* ;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.Memory;
@@ -31,9 +31,7 @@ public class eBPF_ElfRelocationHandler extends ElfRelocationHandler {
   }
 
   @Override
-  public void relocate(ElfRelocationContext elfRelocationContext, ElfRelocation relocation, Address relocationAddress) throws MemoryAccessException,
-  NotFoundException {
-
+  public void relocate(ElfRelocationContext elfRelocationContext, ElfRelocation relocation, Address relocationAddress) throws MemoryAccessException, NotFoundException {
     ElfHeader elf = elfRelocationContext.getElfHeader();
     if (elf.e_machine() != ElfConstants.EM_BPF) {
       return;
@@ -66,7 +64,8 @@ public class eBPF_ElfRelocationHandler extends ElfRelocationHandler {
         memory.setByte(relocationAddress.add(0x1), (byte)(dst + 0x10));
       }
       catch(NullPointerException e) {}
-    } else if (type == 10) {
+    } else 
+    if (type == 10) {
       try {
         int SymbolIndex = relocation.getSymbolIndex();
         ElfSymbol Symbol = elfRelocationContext.getSymbol(SymbolIndex);
@@ -106,15 +105,11 @@ public class eBPF_ElfRelocationHandler extends ElfRelocationHandler {
           }
         }
       }
-
-      catch(NullPointerException e) {
-        System.out.print(e.getMessage());
-      }
+      catch(NullPointerException e) {}
     }
 
     if (appliedSymbol && symbolIndex == 0) {
       markAsWarning(program, relocationAddress, Long.toString(type), "applied relocation with symbol-index of 0", elfRelocationContext.getLog());
     }
-
   }
 }
