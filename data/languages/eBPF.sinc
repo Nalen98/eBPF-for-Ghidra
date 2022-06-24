@@ -8,7 +8,7 @@
 
 define space ram type=ram_space size=8 default;
 define space register type=register_space size=4;
-define space syscall type=ram_space size=2;
+define space syscall type=ram_space size=4;
 
 define register offset=0 size=8 [ R0  R1  R2  R3  R4  R5  R6  R7  R8  R9  R10  PC ];
  
@@ -264,8 +264,14 @@ joff: reloc  is off [ reloc = inst_next + off * 8; ] { export *:8 reloc; }
 
 SysCall:  imm is imm { export *[syscall]:1 imm; }
 
-:CALL SysCall  is imm & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 & SysCall {
+:CALL SysCall  is imm & src=0 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 & SysCall {
 	call SysCall;
+}
+
+disp32: reloc is imm [ reloc = inst_next + imm; ] { export *:4 reloc; }
+
+:CALL disp32 is imm & src=1 & op_alu_jmp_opcode=0x8 & op_alu_jmp_source=0 & op_insn_class=0x5 & disp32 {
+	call disp32;
 }
 
 :EXIT is op_alu_jmp_opcode=0x9 & op_alu_jmp_source=0 & op_insn_class=0x5 { return [*:8 R10]; }
