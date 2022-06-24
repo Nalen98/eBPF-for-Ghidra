@@ -21,7 +21,7 @@ Example of disassembling and decompiling of eBPF:
 
 # Updates
 
-03.09.2019 — eBPF maps implementation. Added string info of map in decompiler and disassembler by using custom relocation handler
+03.09.2019 — eBPF maps implementation, custom relocation handler was implemented
 
 ![](./images/eBPFMaps.png)
 
@@ -39,7 +39,13 @@ Example of disassembling and decompiling of eBPF:
 
 01.12.2020 — new eBPF-helpers added
 
-23.06.2022 — added support for relative calls (`R_BPF_64_32` relocation type). Thanks @cnwangjihe for this [idea](https://github.com/Nalen98/eBPF-for-Ghidra/pull/10)
+23.06.2022 — added support for relative calls (`R_BPF_64_32` relocation type). Thanks @cnwangjihe for this [idea](https://github.com/Nalen98/eBPF-for-Ghidra/pull/10). `imm` of call instruction where `bpf_call->src_reg == BPF_PSEUDO_CALL` now contains the relative offset to target function.
+
+Before:
+
+![image](https://user-images.githubusercontent.com/52778977/175531695-bb059f0c-9f6e-4346-87fa-eaa9c0e6a45a.png)
+
+After:
 
 ![](./images/RelativeCalls.png)
 
@@ -58,7 +64,7 @@ Example of disassembling and decompiling of eBPF:
 
 * [Rust virtual machine and JIT compiler for eBPF programs](https://github.com/qmonnet/rbpf) 
 
-* [eBPF helpers (all)](https://github.com/torvalds/linux/blob/v4.20/include/uapi/linux/bpf.h#L437)
+* [eBPF helpers (all)](https://github.com/torvalds/linux/blob/v5.17/include/uapi/linux/bpf.h#L2619)
 
 * [eBPF overview](https://www.collabora.com/news-and-blog/blog/2019/04/05/an-ebpf-overview-part-1-introduction/)
 
