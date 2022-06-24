@@ -1,8 +1,8 @@
 package ghidra.app.util.bin.format.elf.extend;
 
-import ghidra.app.util.bin.format.elf. * ;
-import ghidra.program.model.lang. * ;
-import ghidra.util.exception. * ;
+import ghidra.app.util.bin.format.elf.* ;
+import ghidra.program.model.lang.* ;
+import ghidra.util.exception.* ;
 import ghidra.util.task.TaskMonitor;
 
 public class eBPF_ElfExtension extends ElfExtension {
@@ -30,5 +30,4 @@ public class eBPF_ElfExtension extends ElfExtension {
     }
     super.processGotPlt(elfLoadHelper, monitor);
   }
-
 }
