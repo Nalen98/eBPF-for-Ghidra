@@ -15,17 +15,14 @@
  */
 package ghidra.app.plugin.core.analysis;
 
-import ghidra.app.cmd.
-function.SetFunctionNameCmd;
-import ghidra.app.cmd.
-function.SetFunctionVarArgsCommand;
-import ghidra.app.cmd.
-function.SetReturnDataTypeCmd;
+import ghidra.app.cmd.function.SetFunctionNameCmd;
+import ghidra.app.cmd.function.SetFunctionVarArgsCommand;
+import ghidra.app.cmd.function.SetReturnDataTypeCmd;
 import ghidra.app.plugin.core.analysis.ConstantPropagationAnalyzer;
 import ghidra.app.plugin.core.analysis.ConstantPropagationContextEvaluator;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
-import ghidra.program.model.address. * ;
+import ghidra.program.model.address.* ;
 import ghidra.program.model.data.CharDataType;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.lang.Processor;
@@ -33,7 +30,7 @@ import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.SourceType;
 import ghidra.program.model.symbol.SymbolIterator;
 import ghidra.program.model.symbol.SymbolTable;
-import ghidra.program.util. * ;
+import ghidra.program.util.* ;
 import ghidra.program.model.data.IntegerDataType;
 import ghidra.program.model.data.PointerDataType;
 import ghidra.program.model.data.SignedQWordDataType;
@@ -46,8 +43,7 @@ import ghidra.program.model.data.VoidDataType;
 import ghidra.program.model.listing.BookmarkManager;
 import ghidra.program.model.listing.CodeUnit;
 import ghidra.program.model.listing.Function;
-import ghidra.app.cmd.
-function.AddMemoryParameterCommand;
+import ghidra.app.cmd.function.AddMemoryParameterCommand;
 
 public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
 
