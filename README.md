@@ -1,4 +1,4 @@
-# eBPF-for-Ghidra
+# eBPF processor for Ghidra
 
 This project was initially started as a part of [Digital Security](https://github.com/DSecurity)'s Research Centre internship ["Summer of Hack 2019"](https://dsec.ru/about/summerofhack/).
 
@@ -9,29 +9,42 @@ Example of eBPF program you can get
 
 ![eBPF Extension](./images/eBPF.gif)
 
+Example of disassembling and decompiling of eBPF:
+
+![Example of decompiling](./images/Main.png)
+
 # Installation
   
 - Download Release version of extension and install it in Ghidra `File → Install Extensions...` 
 - Use gradle to build extension: `GHIDRA_INSTALL_DIR=${GHIDRA_HOME} gradle` and use Ghidra to install it: `File → Install Extensions...` 
 - Clone this repository to `\Ghidra\Extensions` directory.
 
-# Screenshots
-
-Example of disassembling and decompiling of eBPF
-
-![Example of decompiling](./images/Main.png)
-
-Function Graph for eBPF
-
-![Function Graph](./images/Func.png)
-
 # Updates
 
-03.09 - eBPF maps implementation (added string info of map in decompiler and disassembler by using custom relocation handler)
+03.09.2019 — eBPF maps implementation. Added string info of map in decompiler and disassembler by using custom relocation handler
 
-19.09 - stack problem [is resolved](https://github.com/Nalen98/eBPF-for-Ghidra/issues/2#issuecomment-533263382). eBPF call-helpers are implemented as syscalls (added helper's signature through custom eBPFAnalyzer)
+![](./images/eBPFMaps.png)
 
-23.09 - bad bookmarks fixed
+
+19.09.2019 — stack problem [is resolved](https://github.com/Nalen98/eBPF-for-Ghidra/issues/2#issuecomment-533263382)
+
+20.09.2019 — eBPF call-helpers are implemented as syscalls, added helper's signature through custom eBPFAnalyzer
+
+![](./images/eBPFSyscalls.png)
+
+
+23.09.2019 — bad bookmarks fixed
+
+![](./images/GoodBookmarks.png)
+
+01.12.2020 — new eBPF-helpers added
+
+23.06.2022 — added support for relative calls (`R_BPF_64_32` relocation type). Thanks @cnwangjihe for this [idea](https://github.com/Nalen98/eBPF-for-Ghidra/pull/10)
+
+![](./images/RelativeCalls.png)
+
+
+24.06.2022 — making a Pull Request to official [Ghidra](https://github.com/NationalSecurityAgency/ghidra) repository as the main supplier of the eBPF processor 
 
 # Useful links
 
