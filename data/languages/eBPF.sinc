@@ -113,7 +113,7 @@ attach variables [ src dst ] [  R0  R1  R2  R3  R4  R5  R6  R7  R8  R9  R10  _  
 #bits	  	  8			 4     	 4        16              32               32               32
 # So, imm64 consists of concatination of high 8-byte imm and low 8-byte imm.
 
-:LDDW dst, concat  is imm & dst &  op_ld_st_mode=0x0 & op_ld_st_size=0x3 & op_insn_class=0x0; imm2 [ concat= (imm2 << 32) | imm; ] { dst = concat; }
+:LDDW dst, concat  is imm & dst &  op_ld_st_mode=0x0 & op_ld_st_size=0x3 & op_insn_class=0x0; imm2 [ concat= (imm2 << 32) | ((imm) & 0xFFFFFFFF); ] { dst = concat; }
 
 #BPF_LD_MAP_FD(DST, MAP_FD) -> second LDDW = pseudo LDDW insn used to refer to process-local map_fd 
 #For each instruction which needs relocation, it inject corresponding file descriptor to imm field. 
