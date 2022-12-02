@@ -1,12 +1,11 @@
 package ghidra.app.util.bin.format.elf.extend;
 
-import ghidra.app.util.bin.format.elf.* ;
-import ghidra.program.model.lang.* ;
-import ghidra.util.exception.* ;
+import ghidra.app.util.bin.format.elf.*;
+import ghidra.program.model.lang.*;
+import ghidra.util.exception.*;
 import ghidra.util.task.TaskMonitor;
 
 public class eBPF_ElfExtension extends ElfExtension {
-
   @Override
   public boolean canHandle(ElfHeader elf) {
     return elf.e_machine() == ElfConstants.EM_BPF && elf.is64Bit();
