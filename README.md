@@ -1,7 +1,5 @@
 # eBPF processor for Ghidra
 
-This project was initially started as a part of [Digital Security](https://github.com/DSecurity)'s Research Centre internship ["Summer of Hack 2019"](https://dsec.ru/about/summerofhack/).
-
 The extension implements eBPF architecture support for Ghidra and allows for disassembly and decompilation of ELF files containing eBPF programs.
 
 Example of eBPF program you can get 
@@ -26,7 +24,7 @@ Example of disassembling and decompiling of eBPF:
 ![](./images/eBPFMaps.png)
 
 
-19.09.2019 — stack problem [is resolved](https://github.com/Nalen98/eBPF-for-Ghidra/issues/2#issuecomment-533263382)
+19.09.2019 — problem with stack [is resolved](https://github.com/Nalen98/eBPF-for-Ghidra/issues/2#issuecomment-533263382)
 
 20.09.2019 — eBPF call-helpers are implemented as syscalls, added helper's signature through custom eBPFAnalyzer
 
@@ -50,7 +48,7 @@ After:
 ![](./images/RelativeCalls.png)
 
 
-24.06.2022 — making a Pull Request to official [Ghidra](https://github.com/NationalSecurityAgency/ghidra) repository as the main supplier of the eBPF processor 
+24.06.2022 — making the [Pull Request](https://github.com/NationalSecurityAgency/ghidra/pull/4378) to official [Ghidra](https://github.com/NationalSecurityAgency/ghidra) repository as the main supplier of the eBPF processor
 
 # Useful links
 
