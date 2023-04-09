@@ -14,7 +14,7 @@ public class ElfeBPFRelocationFixupHandler extends RelocationFixupHandler {
     @Override
     public boolean processRelocation(Program program, Relocation relocation, Address oldImageBase,
             Address newImageBase) throws MemoryAccessException, CodeUnitInsertionException {
-                return process64BitRelocation(program, relocation, oldImageBase, newImageBase);		
+                return process64BitRelocation(program, relocation, oldImageBase, newImageBase);
     }
 
     @Override

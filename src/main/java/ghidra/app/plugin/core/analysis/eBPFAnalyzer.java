@@ -72,7 +72,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
                 DataType duchar = new UnsignedCharDataType();
                 DataType dvp = new PointerDataType(dvoid, 0);
                 DataType dcp = new PointerDataType(dchar, 0);
-                DataType dsp; //DataType for struct-pointer					
+                DataType dsp; //DataType for struct-pointer
                 //Command-vars
                 SetFunctionNameCmd cmdName;
                 SetReturnDataTypeCmd cmdRet;
@@ -212,7 +212,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
                         cmdRet.applyTo(program);
                         cmdVar.applyTo(program);
                         //If we'll set all arguments for this func (as always), it will give rise nasty errors such "Removing unreachable block at (address)"
-                        //int bpf_skb_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len, u64 flags)						
+                        //int bpf_skb_store_bytes(struct sk_buff *skb, u32 offset, const void *from, u32 len, u64 flags)
                         program.flushEvents();
                         break;
                     case (0xa):
@@ -348,7 +348,7 @@ public class eBPFAnalyzer extends ConstantPropagationAnalyzer {
                         break;
                     case (0x12):
                         //int bpf_skb_vlan_push(struct sk_buff *skb, __be16 vlan_proto, u16 vlan_tci)
-                        //In ghidra Api conditions we must equate__be16 with unsigned short type. 
+                        //In ghidra Api conditions we must equate__be16 with unsigned short type.
                         cmdName = new SetFunctionNameCmd(s.getAddress(), "bpf_skb_vlan_push", SourceType.ANALYSIS);
                         cmdRet = new SetReturnDataTypeCmd(s.getAddress(), dint, SourceType.ANALYSIS);
 

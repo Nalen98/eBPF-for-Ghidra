@@ -10,7 +10,7 @@
         <register_mapping dwarf="7" ghidra="R7"/>
         <register_mapping dwarf="8" ghidra="R8"/>
         <register_mapping dwarf="9" ghidra="R9"/>
-        <register_mapping dwarf="10" ghidra="R10" stackpointer="true"/>									
+        <register_mapping dwarf="10" ghidra="R10" stackpointer="true"/>
     </register_mappings>
     <call_frame_cfa value="8"/>
 </dwarf>
