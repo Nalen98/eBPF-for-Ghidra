@@ -50,6 +50,14 @@ After:
 
 24.06.2022 — making the [Pull Request](https://github.com/NationalSecurityAgency/ghidra/pull/4378) to official [Ghidra](https://github.com/NationalSecurityAgency/ghidra) repository as the main supplier of the eBPF processor
 
+19.12.2022 — added support for BPF_ATOMIC operations, ALU32 instructions added, BPF_JMP32 instructions added, JSET instruction fixed
+
+03.05.2023 — eBPF processor support added to the Ghidra official repository in the commit [506ca1e](https://github.com/NationalSecurityAgency/ghidra/commit/79102c13c48b56e8173a0754d2804f4fe25adf22). Expected to work out of the box in the next Ghidra release 10.3. 
+
+## eBPF support out of the box in Ghidra
+
+Despite the inclusion of this project in the Ghidra, I will continue to maintain this repository. If you have problems or questions, you can open an issue either here or in the Ghidra repository. This repository will continue to be maintained in order to be able to work with older versions of Ghidra.
+
 # Useful links
 
 * [Official kernel documentation](https://www.kernel.org/doc/Documentation/networking/filter.txt)
