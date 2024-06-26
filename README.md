@@ -1,8 +1,16 @@
 # eBPF processor for Ghidra
 
-The extension implements eBPF architecture support for Ghidra and allows for disassembly and decompilation of ELF files containing eBPF programs.
+The extension implements eBPF architecture support for Ghidra and allows for disassembly and decompilation of eBPF programs.
 
-Example of eBPF program you can get 
+# Warning - eBPF is included in Ghidra since Ghidra 10.3
+
+Since May 2023, [eBPF-for-Ghidra](https://github.com/Nalen98/eBPF-for-Ghidra) has been included in the official [NationalSecurityAgency/Ghidra](https://github.com/NationalSecurityAgency/ghidra) repository. You can get the latest updates and fixes for the eBPF module directly in Ghidra.
+
+This repo may be archived in the future.
+
+# Examples
+
+Example of eBPF program you can get
 [here](https://github.com/vbpf/ebpf-samples).
 
 ![eBPF Extension](./images/eBPF.gif)
@@ -12,9 +20,9 @@ Example of disassembling and decompiling of eBPF:
 ![Example of decompiling](./images/Main.png)
 
 # Installation
-  
-- Download Release version of extension and install it in Ghidra `File → Install Extensions...` 
-- Use gradle to build extension: `GHIDRA_INSTALL_DIR=${GHIDRA_HOME} gradle` and use Ghidra to install it: `File → Install Extensions...` 
+
+- Download Release version of extension and install it in Ghidra `File → Install Extensions...`
+- Use gradle to build extension: `GHIDRA_INSTALL_DIR=${GHIDRA_HOME} gradle` and use Ghidra to install it: `File → Install Extensions...`
 - Clone this repository to `\Ghidra\Extensions` directory.
 
 # Updates
@@ -52,11 +60,7 @@ After:
 
 19.12.2022 — added support for BPF_ATOMIC operations, ALU32 instructions added, BPF_JMP32 instructions added, JSET instruction fixed
 
-03.05.2023 — eBPF processor support added to the Ghidra official repository in the commit [506ca1e](https://github.com/NationalSecurityAgency/ghidra/commit/79102c13c48b56e8173a0754d2804f4fe25adf22). Expected to work out of the box in the next Ghidra release 10.3. 
-
-## eBPF support out of the box in Ghidra
-
-Despite the inclusion of this project in the Ghidra, I will continue to maintain this repository. If you have problems or questions, you can open an issue either here or in the Ghidra repository. This repository will continue to be maintained in order to be able to work with older versions of Ghidra.
+03.05.2023 — eBPF processor support added to the Ghidra official repository in the commit [506ca1e](https://github.com/NationalSecurityAgency/ghidra/commit/79102c13c48b56e8173a0754d2804f4fe25adf22)
 
 # Useful links
 
@@ -68,7 +72,7 @@ Despite the inclusion of this project in the Ghidra, I will continue to maintain
 
 * [Simple eBPF disassembler in Rust](https://github.com/badboy/ebpf-disasm)
 
-* [Rust virtual machine and JIT compiler for eBPF programs](https://github.com/qmonnet/rbpf) 
+* [Rust virtual machine and JIT compiler for eBPF programs](https://github.com/qmonnet/rbpf)
 
 * [eBPF helpers (all)](https://github.com/torvalds/linux/blob/v5.17/include/uapi/linux/bpf.h#L2619)
 
