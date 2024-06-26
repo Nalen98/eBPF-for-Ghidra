@@ -2,9 +2,10 @@
 
 The extension implements eBPF architecture support for Ghidra and allows for disassembly and decompilation of eBPF programs.
 
-# Warning - eBPF is included in Ghidra since Ghidra 10.3
+# Warning: eBPF is included in Ghidra since Ghidra 10.3
 
-Since May 2023, [eBPF-for-Ghidra](https://github.com/Nalen98/eBPF-for-Ghidra) has been included in the official [NationalSecurityAgency/Ghidra](https://github.com/NationalSecurityAgency/ghidra) repository. You can get the latest updates and fixes for the eBPF module directly in Ghidra.
+**Since May 2023, [eBPF-for-Ghidra](https://github.com/Nalen98/eBPF-for-Ghidra) has been included in the official [NationalSecurityAgency/Ghidra](https://github.com/NationalSecurityAgency/ghidra) repository**.  
+You can get the latest updates and fixes for the [eBPF module](https://github.com/NationalSecurityAgency/ghidra/tree/70405b07b0b857d433dfec77ae5c343997f589eb/Ghidra/Processors/eBPF) directly in Ghidra.
 
 This repo may be archived in the future.
 
@@ -61,6 +62,8 @@ After:
 19.12.2022 — added support for BPF_ATOMIC operations, ALU32 instructions added, BPF_JMP32 instructions added, JSET instruction fixed
 
 03.05.2023 — eBPF processor support added to the Ghidra official repository in the commit [506ca1e](https://github.com/NationalSecurityAgency/ghidra/commit/79102c13c48b56e8173a0754d2804f4fe25adf22)
+
+Starting from Ghidra 10.3, the eBPF module is included by default in Ghidra. There's no need to build this project and add it as a Ghidra extension anymore. For users of older versions of Ghidra, the eBPF module can still be accessed through existing [Releases](https://github.com/Nalen98/eBPF-for-Ghidra/releases/tag/v0.2).
 
 # Useful links
 
